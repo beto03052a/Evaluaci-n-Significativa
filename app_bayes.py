@@ -326,7 +326,7 @@ with tab1:
         )
         st.plotly_chart(fig, use_container_width=True)
         
-    st.info(f"👉 **Conclusión:** La herramienta que más utiliza la palabra '{palabra_seleccionada}' es **{df_frec.loc[df_frec['Frecuencia'].idxmax(), 'Fuente']}**, apareciendo {df_frec['Frecuencia'].max()} veces en la muestra.")
+    st.info(f"**Conclusión:** La herramienta que más utiliza la palabra '{palabra_seleccionada}' es **{df_frec.loc[df_frec['Frecuencia'].idxmax(), 'Fuente']}**, apareciendo {df_frec['Frecuencia'].max()} veces en la muestra.")
 
 # ── TAB 2: TABLAS DE CONTINGENCIA ──
 with tab2:
@@ -372,7 +372,7 @@ with tab2:
     max_ia_prob = max([(totales_corpus['ChatGPT']/(ia_palabra+ia_otras), 'ChatGPT'),
                        (totales_corpus['Gemini']/(ia_palabra+ia_otras), 'Gemini'),
                        (totales_corpus['Copilot']/(ia_palabra+ia_otras), 'Copilot')])[1]
-    st.success(f"👉 **Conclusión:** Analizando las distribuciones marginales, si sabemos que un texto fue generado por IA, la herramienta más probable en general es **{max_ia_prob}**.")
+    st.success(f"**Conclusión:** Analizando las distribuciones marginales, si sabemos que un texto fue generado por IA, la herramienta más probable en general es **{max_ia_prob}**.")
 
 # ── TAB 3: DIAGRAMA DE ARBOL Y BAYES ──
 with tab3:
@@ -497,7 +497,7 @@ with tab3:
         best_source = max(prob_dict, key=prob_dict.get)
         best_prob = prob_dict[best_source]
         
-        st.success(f"👉 **Conclusión:** Dado que $P({best_source} | W)$ es la más alta ({best_prob:.2%}), esto significa que si ves la palabra '{palabra_seleccionada}', es casi seguro que fue escrita por **{best_source}**. Esta palabra funciona como una 'huella digital' fuerte para este generador.")
+        st.success(f"**Conclusión:** Dado que $P({best_source} | W)$ es la más alta ({best_prob:.2%}), esto significa que si ves la palabra '{palabra_seleccionada}', es casi seguro que fue escrita por **{best_source}**. Esta palabra funciona como una 'huella digital' fuerte para este generador.")
 
 # ── TAB 4: RED BAYESIANA ──
 with tab4:
@@ -594,7 +594,7 @@ with tab4:
             index=["ChatGPT", "Gemini", "Copilot", "Humano"]
         ), use_container_width=True)
         
-    st.info(f"👉 **Conclusión:** La Red Bayesiana modela la dependencia condicional. Muestra visualmente que la aparición de la palabra '{palabra_seleccionada}' (Estado 1) depende directamente de qué generador se utilizó (Estado 0).")
+    st.info(f"**Conclusión:** La Red Bayesiana modela la dependencia condicional. Muestra visualmente que la aparición de la palabra '{palabra_seleccionada}' (Estado 1) depende directamente de qué generador se utilizó (Estado 0).")
 
 # ── TAB 5: CADENAS DE MARKOV ──
 with tab5:
@@ -604,7 +604,12 @@ with tab5:
     col_sliders, col_sim = st.columns([1, 1.5])
     
     with col_sliders:
-        st.markdown("#### Matriz de Transición P")
+        st.markdown("#### Espacio de Estados y Matriz")
+        st.markdown("**Vector de Estado ($V$):**")
+        st.latex(r"V = \begin{bmatrix} P(\text{ChatGPT}) & P(\text{Gemini}) & P(\text{Copilot}) \end{bmatrix}")
+        
+        st.markdown("---")
+        st.markdown("#### Matriz de Transición (Estado) $P$")
         
         # Sliders fila 1
         st.markdown("**E1: ChatGPT hacia:**")
@@ -677,7 +682,18 @@ with tab5:
         df_hist = pd.DataFrame(historico, columns=["ChatGPT", "Gemini", "Copilot"])
         df_hist.index.name = "t"
         
-        st.markdown(f"**3. Estado Final en $t={steps}$**")
+        st.markdown("**3. Matriz de Vectores de Estado ($M_{estados}$)**")
+        max_show = min(5, steps + 1)
+        matrix_v_latex = r"\mathbf{M_{estados}} = \begin{bmatrix} "
+        for i in range(max_show):
+            matrix_v_latex += f"V_{{{i}}} \\to & {historico[i][0]:.3f} & {historico[i][1]:.3f} & {historico[i][2]:.3f} \\\\ "
+        if steps + 1 > 5:
+            matrix_v_latex += r"\vdots & \vdots & \vdots & \vdots \\ "
+            matrix_v_latex += f"V_{{{steps}}} \\to & {historico[-1][0]:.3f} & {historico[-1][1]:.3f} & {historico[-1][2]:.3f} \\\\ "
+        matrix_v_latex += r"\end{bmatrix}"
+        st.latex(matrix_v_latex)
+        
+        st.markdown(f"**4. Estado Final en $t={steps}$**")
         st.latex(r"V_{" + str(steps) + r"} = \begin{bmatrix} " + f"{v_curr[0]:.3f} & {v_curr[1]:.3f} & {v_curr[2]:.3f}" + r" \end{bmatrix}")
         
         # Grafico convergencia iterativo
@@ -699,4 +715,4 @@ with tab5:
         # Conclusion
         final_winner = df_hist.iloc[-1].idxmax()
         final_prob = df_hist.iloc[-1].max()
-        st.success(f"👉 **Conclusión:** A medida que avanza el tiempo ($t \\to \\infty$), el sistema estocástico converge. A largo plazo (estado estacionario), la herramienta predominante es **{final_winner}**, estabilizándose en una probabilidad del **{final_prob:.2%}**.")
+        st.success(f"**Conclusión:** A medida que avanza el tiempo ($t \\to \\infty$), el sistema estocástico converge. A largo plazo (estado estacionario), la herramienta predominante es **{final_winner}**, estabilizándose en una probabilidad del **{final_prob:.2%}**.")
